@@ -832,15 +832,15 @@ impl StellarGrantsContract {
         let mut milestone = Storage::get_milestone_v(&env, grant_id, milestone_idx);
 
         if milestone.state != MilestoneState::Submitted {
-            env.panic_with_error(ContractError::MilestoneNotSubmitted);
+            return Err(ContractError::MilestoneNotSubmitted);
         }
 
         if !grant.reviewers.contains(reviewer.clone()) {
-            env.panic_with_error(ContractError::Unauthorized);
+            return Err(ContractError::Unauthorized);
         }
 
         if milestone.votes.contains_key(reviewer.clone()) {
-            env.panic_with_error(ContractError::AlreadyVoted);
+            return Err(ContractError::AlreadyVoted);
         }
 
         let reputation = Storage::get_reviewer_reputation(&env, reviewer.clone());
