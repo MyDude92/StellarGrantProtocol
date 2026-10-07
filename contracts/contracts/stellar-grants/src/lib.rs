@@ -3933,18 +3933,12 @@ impl StellarGrantsContract {
         );
     }
 
-    fn record_contributor_rejection(
-        env: &Env,
-        contributor: &Address,
-    ) {
+    fn record_contributor_rejection(env: &Env, contributor: &Address) {
         let mut profile = match Storage::get_contributor(env, contributor.clone()) {
             Some(p) => p,
             None => return,
         };
-        let _ = reputation::record_rejection(
-            env,
-            &mut profile,
-        );
+        let _ = reputation::record_rejection(env, &mut profile);
     }
 
     // ── Issue #579: IP License Tracking ──────────────────────────────────────
