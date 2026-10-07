@@ -871,6 +871,23 @@ impl StellarGrantsContract {
                 milestone_idx,
                 MilestoneState::Rejected,
             );
+
+            // Issue #1153: fire subscriber notification, audit log, and metrics tracking on rejection
+            notification::emit_notification(
+                &env,
+                NotificationEvent::MilestoneRejected,
+                &SubscriptionScope::PerGrant(grant_id),
+                ((grant_id as u128) << 32) | milestone_idx as u128,
+            );
+            audit::log(
+                &env,
+                grant_id,
+                AuditAction::MilestoneRejected,
+                &reviewer,
+                Some(milestone_idx),
+                None,
+            );
+            metrics::increment(&env, MetricField::MilestonesRejected, 1);
         }
 
         Storage::set_milestone(&env, grant_id, milestone_idx, &milestone);
