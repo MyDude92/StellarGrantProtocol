@@ -255,6 +255,8 @@ mod tests {
         testutils::Address as _, testutils::Events as _, testutils::Ledger as _, Env, Map, String,
         Vec,
     };
+    extern crate alloc;
+    use alloc::format;
 
     fn setup() -> (Env, Address, Address, Address) {
         let env = Env::default();
