@@ -908,7 +908,6 @@ impl StellarGrantsContract {
 
         // Issue #574: a required bond must be posted before any milestone submission.
         require_bond_posted(&env, grant_id)?;
-        require_bond_posted(&env, grant_id)?;
 
         // Issue #564: a required collateral deposit must be posted before submission.
         collateral::require_deposited(&env, grant_id, &recipient)?;
