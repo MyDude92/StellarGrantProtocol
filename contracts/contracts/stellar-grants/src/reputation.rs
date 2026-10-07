@@ -67,6 +67,28 @@ pub fn calculate_effective_score(env: &Env, profile: &ContributorProfile) -> u32
     reputation_decay::apply_decay(env, raw, profile.last_action_at, &cfg.decay_config)
 }
 
+pub fn record_rejection(
+    env: &Env,
+    profile: &mut ContributorProfile,
+) -> Result<u32, ContractError> {
+    profile.milestones_rejected = profile.milestones_rejected.saturating_add(1);
+    let new_score = calculate_effective_score(env, profile);
+    profile.reputation_score = new_score as u64;
+
+    Storage::set_contributor(env, profile.contributor.clone(), profile);
+    reputation_decay::record_activity(env, &profile.contributor);
+
+    Events::reputation_updated(
+        env,
+        profile.contributor.clone(),
+        profile.reputation_score,
+        profile.milestones_completed,
+        profile.endorsements_count,
+    );
+
+    Ok(new_score)
+}
+
 pub fn record_completion(
     env: &Env,
     grant_id: u64,
