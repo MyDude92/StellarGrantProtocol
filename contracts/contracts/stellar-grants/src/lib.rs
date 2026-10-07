@@ -809,6 +809,7 @@ impl StellarGrantsContract {
                     None,
                 );
                 metrics::increment(&env, MetricField::MilestonesRejected, 1);
+                Self::record_contributor_rejection(&env, &grant.recipient);
             }
         }
 
@@ -871,6 +872,7 @@ impl StellarGrantsContract {
                 milestone_idx,
                 MilestoneState::Rejected,
             );
+            Self::record_contributor_rejection(&env, &grant.recipient);
         }
 
         Storage::set_milestone(&env, grant_id, milestone_idx, &milestone);
@@ -3928,6 +3930,20 @@ impl StellarGrantsContract {
             milestone_idx,
             &mut profile,
             payout_amount,
+        );
+    }
+
+    fn record_contributor_rejection(
+        env: &Env,
+        contributor: &Address,
+    ) {
+        let mut profile = match Storage::get_contributor(env, contributor.clone()) {
+            Some(p) => p,
+            None => return,
+        };
+        let _ = reputation::record_rejection(
+            env,
+            &mut profile,
         );
     }
 
