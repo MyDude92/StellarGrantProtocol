@@ -4,6 +4,7 @@ use crate::constants::MAX_BIO_LEN;
 use crate::events::Events;
 use crate::quadratic;
 use crate::reviewer_sla;
+use crate::config;
 use crate::storage::Storage;
 use crate::types::{ContractError, Grant, Milestone, MilestoneState, VotingMechanism};
 
@@ -143,7 +144,7 @@ pub fn cast_vote(
     // Use the snapshotted reviewer count from submission time to prevent
     // quorum miscalculation when reviewers are added/removed mid-vote (#624).
     let total_weight = milestone.reviewer_count_snapshot;
-    let threshold_bps = grant.quorum_threshold_bps;
+    let threshold_bps = config::get_config(env).quorum_threshold_bps;
 
     let approval_quorum =
         quorum_reached_with_threshold(milestone.approvals, total_weight, threshold_bps);
