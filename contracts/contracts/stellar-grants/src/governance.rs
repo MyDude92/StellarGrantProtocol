@@ -147,8 +147,10 @@ pub fn cast_vote(
         .map(|p| p.quorum_threshold_bps)
         .unwrap_or(5000);
 
-    let approval_quorum = quorum_reached_with_threshold(milestone.approvals, total_weight, threshold_bps);
-    let rejection_quorum = quorum_reached_with_threshold(milestone.rejections, total_weight, threshold_bps);
+    let approval_quorum =
+        quorum_reached_with_threshold(milestone.approvals, total_weight, threshold_bps);
+    let rejection_quorum =
+        quorum_reached_with_threshold(milestone.rejections, total_weight, threshold_bps);
     let vote_finalized = approval_quorum || rejection_quorum;
 
     let total_votes = milestone.approvals + milestone.rejections;
