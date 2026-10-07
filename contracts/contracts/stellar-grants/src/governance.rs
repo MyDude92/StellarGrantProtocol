@@ -143,9 +143,7 @@ pub fn cast_vote(
     // Use the snapshotted reviewer count from submission time to prevent
     // quorum miscalculation when reviewers are added/removed mid-vote (#624).
     let total_weight = milestone.reviewer_count_snapshot;
-    let threshold_bps = Storage::get_governance_params(env, grant.id)
-        .map(|p| p.quorum_threshold_bps)
-        .unwrap_or(5000);
+    let threshold_bps = grant.quorum_threshold_bps;
 
     let approval_quorum =
         quorum_reached_with_threshold(milestone.approvals, total_weight, threshold_bps);
