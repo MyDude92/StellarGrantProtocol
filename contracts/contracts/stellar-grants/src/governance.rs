@@ -143,9 +143,12 @@ pub fn cast_vote(
     // Use the snapshotted reviewer count from submission time to prevent
     // quorum miscalculation when reviewers are added/removed mid-vote (#624).
     let total_weight = milestone.reviewer_count_snapshot;
+    let threshold_bps = Storage::get_governance_params(env, grant.id)
+        .map(|p| p.quorum_threshold_bps)
+        .unwrap_or(5000);
 
-    let approval_quorum = quorum_reached(milestone.approvals, total_weight);
-    let rejection_quorum = quorum_reached(milestone.rejections, total_weight);
+    let approval_quorum = quorum_reached_with_threshold(milestone.approvals, total_weight, threshold_bps);
+    let rejection_quorum = quorum_reached_with_threshold(milestone.rejections, total_weight, threshold_bps);
     let vote_finalized = approval_quorum || rejection_quorum;
 
     let total_votes = milestone.approvals + milestone.rejections;
@@ -196,10 +199,21 @@ pub fn cast_vote(
 /// Compute whether quorum is reached given current approvals and total reviewers.
 /// Quorum = strictly more than 50% of reviewers approved.
 pub fn quorum_reached(approvals: u32, total_reviewers: u32) -> bool {
+    quorum_reached_with_threshold(approvals, total_reviewers, 5000)
+}
+
+/// Compute whether quorum is reached given current approvals, total reviewers, and threshold in basis points.
+/// If threshold_bps is 0 or > 10,000, defaults to simple majority (5,000 bps = 50%).
+pub fn quorum_reached_with_threshold(approvals: u32, total_reviewers: u32, threshold_bps: u32) -> bool {
     if total_reviewers == 0 {
         return false;
     }
-    approvals * 2 > total_reviewers
+    let threshold = if threshold_bps == 0 || threshold_bps > 10_000 {
+        5000
+    } else {
+        threshold_bps
+    };
+    (approvals as u64) * 10_000 > (total_reviewers as u64) * (threshold as u64)
 }
 
 /// Compute the approval percentage (0-100) from votes cast.
@@ -248,6 +262,25 @@ mod tests {
         assert!(quorum_reached(2, 3)); // 66% > 50%
         assert!(quorum_reached(3, 4)); // 75% > 50%
         assert!(quorum_reached(3, 5)); // 60% > 50%
+    }
+
+    #[test]
+    fn test_quorum_reached_with_threshold_bps() {
+        // 75% supermajority threshold (7500 bps) with 4 reviewers
+        // 3/4 = 75% -> not strictly greater than 75%
+        assert!(!quorum_reached_with_threshold(3, 4, 7500));
+        // 4/4 = 100% -> quorum reached
+        assert!(quorum_reached_with_threshold(4, 4, 7500));
+
+        // 60% threshold (6000 bps) with 5 reviewers
+        // 3/5 = 60% -> 30,000 not > 30,000 -> false
+        assert!(!quorum_reached_with_threshold(3, 5, 6000));
+        // 4/5 = 80% -> 40,000 > 30,000 -> true
+        assert!(quorum_reached_with_threshold(4, 5, 6000));
+
+        // Default fallback on 0 threshold bps
+        assert!(!quorum_reached_with_threshold(1, 3, 0));
+        assert!(quorum_reached_with_threshold(2, 3, 0));
     }
 
     #[test]
