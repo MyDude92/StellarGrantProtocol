@@ -204,7 +204,11 @@ pub fn quorum_reached(approvals: u32, total_reviewers: u32) -> bool {
 
 /// Compute whether quorum is reached given current approvals, total reviewers, and threshold in basis points.
 /// If threshold_bps is 0 or > 10,000, defaults to simple majority (5,000 bps = 50%).
-pub fn quorum_reached_with_threshold(approvals: u32, total_reviewers: u32, threshold_bps: u32) -> bool {
+pub fn quorum_reached_with_threshold(
+    approvals: u32,
+    total_reviewers: u32,
+    threshold_bps: u32,
+) -> bool {
     if total_reviewers == 0 {
         return false;
     }
