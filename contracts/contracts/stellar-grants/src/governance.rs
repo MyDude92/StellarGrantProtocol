@@ -1,10 +1,10 @@
 use soroban_sdk::{Address, Env, String};
 
+use crate::config;
 use crate::constants::MAX_BIO_LEN;
 use crate::events::Events;
 use crate::quadratic;
 use crate::reviewer_sla;
-use crate::config;
 use crate::storage::Storage;
 use crate::types::{ContractError, Grant, Milestone, MilestoneState, VotingMechanism};
 
