@@ -809,7 +809,7 @@ impl StellarGrantsContract {
                     None,
                 );
                 metrics::increment(&env, MetricField::MilestonesRejected, 1);
-                Self::record_contributor_rejection(&env, &grant.recipient);
+                Self::record_contributor_rejection(&env, grant_id, milestone_idx, &grant.owner);
             }
         }
 
@@ -872,7 +872,7 @@ impl StellarGrantsContract {
                 milestone_idx,
                 MilestoneState::Rejected,
             );
-            Self::record_contributor_rejection(&env, &grant.recipient);
+            Self::record_contributor_rejection(&env, grant_id, milestone_idx, &grant.owner);
         }
 
         Storage::set_milestone(&env, grant_id, milestone_idx, &milestone);
@@ -3933,12 +3933,17 @@ impl StellarGrantsContract {
         );
     }
 
-    fn record_contributor_rejection(env: &Env, contributor: &Address) {
+    fn record_contributor_rejection(
+        env: &Env,
+        grant_id: u64,
+        milestone_idx: u32,
+        contributor: &Address,
+    ) {
         let mut profile = match Storage::get_contributor(env, contributor.clone()) {
             Some(p) => p,
             None => return,
         };
-        let _ = reputation::record_rejection(env, &mut profile);
+        let _ = reputation::record_rejection(env, grant_id, milestone_idx, &mut profile);
     }
 
     // ── Issue #579: IP License Tracking ──────────────────────────────────────
